@@ -4,100 +4,66 @@
  * See CONTRIBUTORS for a full list of copyright holders.
  *
  * See LICENSE for the full licensing terms of this file.
- *
 */
 
 ##################### System #########################
-define("SYSNAME","Grid Name");
-define("SYSURL","http://website.com");
-define("SYSMAIL","info@email.com");
+if (!defined("SYSNAME")) define("SYSNAME", "Grid Name");
+if (!defined("SYSURL")) define("SYSURL", "http://website.com");
+if (!defined("SYSMAIL")) define("SYSMAIL", "info@email.com");
 
+if (!defined("LOGIN_URI")) define("LOGIN_URI", "http://mygrid.com:8002");
 
-$userInventoryURI="http://robusturl.com:8004";
-$userAssetURI="http://robusturl.com:8003";
+if (!isset($GRIDSTATUS)) $GRIDSTATUS = 1;
+if (!isset($INFOBOX)) $INFOBOX = 1;
+if (!isset($BOXCOLOR)) $BOXCOLOR = 'green';
+if (!isset($BOX_TITLE)) $BOX_TITLE = 'Welcome to ' . SYSNAME . '!';
+if (!isset($BOX_INFOTEXT)) $BOX_INFOTEXT = 'Enjoy your stay — the grid is stable and active.';
+
+$userInventoryURI = "http://robusturl.com:8004";
+$userAssetURI = "http://robusturl.com:8003";
 
 ############ Delete Unconfirmed accounts ################
-// e.g. 24 for 24 hours  leave empty for no timed delete
-$unconfirmed_deltime="24";
+$unconfirmed_deltime = "24";
 
 ###################### Money Settings ####################
+$economy_sink_account = "00a4170f-306a-475f-8d0e-b3b3057f99ff";
+$economy_source_account = "00a4170f-306a-475f-8d0e-b3b3057f99ff";
+$minimum_real = 1;
+$low_amount_error = "You tried to buy less than the minimum amount of currency. You cannot buy currency for less than US$ %.2f.";
 
-// Key of the account that all fees go to:
-$economy_sink_account="00a4170f-306a-475f-8d0e-b3b3057f99ff";
+$currency_alert_message = "You requested to buy ¤%d .\n\n".
+						  "To purchase tokens, please visit: ".SYSURL."/tokens\n\n";
+                          
 
-// Key of the account that all purchased currency is debited from:
-$economy_source_account="00a4170f-306a-475f-8d0e-b3b3057f99ff";
+################### Page Editor ##########################
+$editor_to_use = 'fckeditor';
 
-// Minimum amount of real currency (in CENTS!) to allow purchasing:
-$minimum_real=1;
+################### GridMap Settings #####################
+$ALLOW_ZOOM = TRUE;
+$RegionImageServer = "";
+$mapstartX = 10000;
+$mapstartY = 10000;
+$display_marker = "dr";
 
-// Error message if the amount is not reached:
-$low_amount_error="You tried to buy less than the minimum amount of currency. You cannot buy currency for less than US$ %.2f.";
-
-
-// Sets wich Pageeditor should be used:
-//$editor_to_use='standard';
-$editor_to_use='fckeditor';
-
-################### GridMap Settings  #####################
-//Allowing Zoom on your Map
-$ALLOW_ZOOM=TRUE;
-
-//Server Hanlder URL to get images eg.: http://127.0.0.1:9000/
-$RegionImageServer="";
-
-//Default StartPoint for Map
-$mapstartX=10000;
-$mapstartY=10000;
-
-$display_marker="dr";
-
-##################### Database ########################
-define("C_DB_TYPE","mysql");
-//Your Hostname here:
-define("C_DB_HOST","localhost");
-//Your Databasename here:
-define("C_DB_NAME","user");
-//Your Username from Database here:
-define("C_DB_USER","database");
-//Your Database Password here:
-define("C_DB_PASS","password");
+##################### Database ###########################
+if (!defined("C_DB_TYPE")) define("C_DB_TYPE", "mysql");
+if (!defined("C_DB_HOST")) define("C_DB_HOST", "localhost");
+if (!defined("C_DB_NAME")) define("C_DB_NAME", "user");
+if (!defined("C_DB_USER")) define("C_DB_USER", "database");
+if (!defined("C_DB_PASS")) define("C_DB_PASS", "password");
 
 ################ Database Tables #########################
-/*define("C_ADMIN_TBL","wi_admin");
-define("C_WIUSR_TBL","wi_users");
-define("C_USRBAN_TBL","wi_banned");
-define("C_CODES_TBL","wi_codetable");
-define("C_ADM_TBL","wi_adminsetting");
-define("C_COUNTRY_TBL","wi_country");
-define("C_NAMES_TBL","wi_lastnames");
-define("C_CURRENCY_TBL","wi_economy_money");
-define("C_TRANSACTION_TBL","wi_economy_transactions");
-define("C_INFOWINDOW_TBL","wi_startscreen_infowindow");
-define("C_NEWS_TBL","wi_startscreen_news");
-define("C_PAGE_TBL","wi_pagemanager");
-// REGION MANAGER 
-define("C_MANAGEMENT_PAGE_TBL","wi_management_pagemanager");
-define("C_MAP_REGIONS_TBL", "wi_regions");
-// OFFLINE IM'S
-define("C_OFFLINE_IM_TBL", "wi_offline_msgs");
-// STATISTICS
-define("C_STATS_REGIONS_TBL", "wi_statistics");*/
+if (!defined("C_USERS_TBL")) define("C_USERS_TBL", "UserAccounts");
+if (!defined("C_AGENTS_TBL")) define("C_AGENTS_TBL", "GridUser");
+if (!defined("C_REGIONS_TBL")) define("C_REGIONS_TBL", "regions");
+if (!defined("C_APPEARANCE_TBL")) define("C_APPEARANCE_TBL", "Avatars");
+if (!defined("C_PRESENCE_TBL")) define("C_PRESENCE_TBL", "Presence");
 
-//OPENSIM DEFAULT TABLES (NEDED FOR LOGINSCREEN & MONEY SYSTEM)
-define("C_USERS_TBL", "UserAccounts");
-define("C_AGENTS_TBL", "GridUser");
-define("C_REGIONS_TBL", "regions");
-define("C_APPEARANCE_TBL", "Avatars");
-define("C_PRESENCE_TBL", "Presence");
+##################### REST API Settings ##################
+if (!defined("REST_API_BASE_URL")) define("REST_API_BASE_URL", "http://your-wordpress-site.com/wp-json/wsfw-route/v1");
+if (!defined("REST_CONSUMER_KEY")) define("REST_CONSUMER_KEY", "your_consumer_key_here");
+if (!defined("REST_CONSUMER_SECRET")) define("REST_CONSUMER_SECRET", "your_consumer_secret_here");
 
-##################### REST API Settings #########################
-// REST API configuration for wallet system
-define("REST_API_BASE_URL", "http://your-wordpress-site.com/wp-json/wsfw-route/v1");
-define("REST_CONSUMER_KEY", "your_consumer_key_here");
-define("REST_CONSUMER_SECRET", "your_consumer_secret_here");
-
-##################### Robust Server Settings #########################
-// Robust server settings for sending user messages
-define("OPENSIM_REMOTEADMIN_PASSWORD", "your_admin_password_here");
+##################### Robust Server Settings #############
+if (!defined("OPENSIM_REMOTEADMIN_PASSWORD")) define("OPENSIM_REMOTEADMIN_PASSWORD", "your_admin_password_here");
 ?>

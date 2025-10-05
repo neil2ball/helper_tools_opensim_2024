@@ -80,28 +80,31 @@ function buy_land_prep($method_name, $params, $app_data)
     if($UUID)
 	{
 		$membership_levels = array(
-				'levels' => array(
-						'id'          => "00000000-0000-0000-0000-000000000000",
-						'description' => "some level"));
+			array(
+				'id' => "00000000-0000-0000-0000-000000000000",
+				'description' => "some level"
+			)
+		);
 
 		$landUse = array(
-				'upgrade' => False,
-				'action'  => "".SYSURL.""));
+			'upgrade' => False,
+			'action'  => SYSURL
+		);
 
 		$currency = array(
 				'estimatedCost' => convert_to_real($amount));
 
 		$membership = array(
-				'upgrade' => False,
-				'action'  => "".SYSURL."",
-				'levels'  => $membership_levels);
+			'upgrade' => False,
+			'action'  => SYSURL,
+			'levels'  => $membership_levels
+		);
 
 		$response_xml = xmlrpc_encode(array(
 				'success'    => True,
 				'currency'   => $currency,
 				'membership' => $membership,
 				'landUse'    => $landUse,
-				'currency'   => $currency,
 				'confirm'    => $confirmvalue));
 
 

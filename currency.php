@@ -81,6 +81,7 @@ xmlrpc_server_register_method($xmlrpc_server, "getCurrencyQuote",
 
 function get_currency_quote($method_name, $params, $app_data)
 {
+	global $currency_alert_message;
 	$confirmvalue = "1234567883789";
 
 	$req       = $params[0];
@@ -103,8 +104,10 @@ function get_currency_quote($method_name, $params, $app_data)
 	if($UUID)
 	{
 		// Send message to user with purchase link
-		send_user_message($agentid, "Token Purchase Required", 
-			"To purchase tokens, please visit: ".SYSURL."/tokens\n\nYou requested to buy L$".$amount." worth of tokens.");
+		send_user_alert(
+			$agentid,
+			sprintf($currency_alert_message, $amount)
+		);
 
 		$estimatedcost = convert_to_real($amount);
 
@@ -143,74 +146,77 @@ xmlrpc_server_register_method($xmlrpc_server, "buyCurrency", "buy_currency");
 
 function buy_currency($method_name, $params, $app_data)
 {
-	global $minimum_real;
-	global $low_amount_error;
+    global $minimum_real;
+    global $low_amount_error;
+	global $currency_alert_message;
 
-	$req       = $params[0];
+    $req = $params[0];
 
-	$agentid   = $req['agentId'];
-	$regionid  = $req['regionId'];
-	$sessionid = $req['secureSessionId'];
-	$amount    = $req['currencyBuy'];
-	$ipAddress = $_SERVER['REMOTE_ADDR'];
+    $agentid   = $req['agentId']        ?? null;
+    $sessionid = $req['secureSessionId']?? null;
+    $amount    = $req['currencyBuy']    ?? 0;
+    $regionid  = $req['regionId']       ?? null;
+    $ipAddress = $_SERVER['REMOTE_ADDR'];
 
-	#
-	# Validate Requesting user has a session
-	#
+    $db = new DB;
+    $db->query("SELECT UserID, RegionID FROM " . C_PRESENCE_TBL .
+               " WHERE UserID='" . $db->escape($agentid) . "'" .
+               " AND SecureSessionID='" . $db->escape($sessionid) . "'");
 
-	$db = new DB;
-	$db->query("select UserID from Presence where ".
-			"UserID='".           $db->escape($agentid).  "' and ".
-			"SecureSessionID='".$db->escape($sessionid)."'");
+    if ($db->next_record()) {
+        $UUID = $db->f('UserID');
 
-	list($UUID) = $db->next_record();
+        // If regionId wasn’t provided in the request, fall back to Presence
+        if (!$regionid) {
+            $regionid = trim($db->f('RegionID'));
+        }
 
-	if($UUID)
-	{
-		$cost = convert_to_real($amount);
+        $cost = convert_to_real($amount);
 
-		if($cost < $minimum_real)
-		{
-			$error=sprintf($low_amount_error, $minimum_real/100.0);
+        if ($cost < $minimum_real) {
+            $error = sprintf($low_amount_error, $minimum_real/100.0);
 
-			header("Content-type: text/xml");
-			$response_xml = xmlrpc_encode(array(
-					'success'      => False,
-					'errorMessage' => $error,
-					'errorURI'     => "".SYSURL.""));
-	                $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
-	                $response_xmlf .="</methodResponse>";
-	                print $response_xmlf;
+            header("Content-type: text/xml");
+            $response_xml = xmlrpc_encode(array(
+                'success'      => false,
+                'errorMessage' => $error,
+                'errorURI'     => SYSURL
+            ));
+            $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
+            $response_xmlf .= "</methodResponse>";
+            print $response_xmlf;
+            return "";
+        }
 
-			return "";
-		}
+        // Send message to user with purchase link instead of processing transaction
+		send_user_alert(
+			$agentid,
+			sprintf($currency_alert_message, $amount)
+		);
 
-		// Send message to user with purchase link instead of processing transaction
-		send_user_message($agentid, "Complete Token Purchase", 
-			"Please visit ".SYSURL."/tokens to complete your purchase of L$".$amount." worth of tokens.\n\nClick the link to proceed with payment.");
+        header("Content-type: text/xml");
+        $response_xml = xmlrpc_encode(array(
+            'success'      => false,
+            'errorMessage' => "Please use the website to purchase tokens: ".SYSURL."/tokens",
+            'errorURI'     => SYSURL."/tokens"
+        ));
+        $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
+        $response_xmlf .= "</methodResponse>";
+        print $response_xmlf;
+    }
+    else {
+        header("Content-type: text/xml");
+        $response_xml = xmlrpc_encode(array(
+            'success'      => false,
+            'errorMessage' => "Unable to Authenticate\n\nClick URL for more info.",
+            'errorURI'     => SYSURL
+        ));
+        $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
+        $response_xmlf .= "</methodResponse>";
+        print $response_xmlf;
+    }
 
-		header("Content-type: text/xml");
-		$response_xml = xmlrpc_encode(array(
-				'success'      => False,
-				'errorMessage' => "Please use the website to purchase tokens: ".SYSURL."/tokens",
-				'errorURI'     => "".SYSURL."/tokens"));
-                $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
-                $response_xmlf .="</methodResponse>";
-                print $response_xmlf;
-	}
-	else 
-	{
-		header("Content-type: text/xml");
-		$response_xml = xmlrpc_encode(array(
-					'success'      => False,
-					'errorMessage' => "Unable to Authenticate\n\nClick URL for more info.",
-					'errorURI'     => "".SYSURL.""));
-                $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
-                $response_xmlf .="</methodResponse>";
-                print $response_xmlf;
-	}
-
-	return "";
+    return "";
 }
 
 #

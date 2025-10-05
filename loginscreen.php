@@ -66,10 +66,8 @@ include("loginscreen/region_box.php");
 <? include("loginscreen/gridstatus.php"); ?>
 </DIV>
 <br />
-<!--
 <DIV id=Infobox>
 <?php
-/*
 if(($INFOBOX=="1")&&($BOXCOLOR=="white")){
     include("loginscreen/box_white.php"); 
 }else if(($INFOBOX=="1")&&($BOXCOLOR=="green")){
@@ -79,9 +77,6 @@ if(($INFOBOX=="1")&&($BOXCOLOR=="white")){
 }else if(($INFOBOX=="1")&&($BOXCOLOR=="red")){
     include("loginscreen/box_red.php"); 
 }
-*/
 ?>
 </DIV>
--->
-
 </DIV>

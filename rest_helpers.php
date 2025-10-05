@@ -103,6 +103,7 @@ function transfer_money_via_rest($from_uuid, $to_uuid, $amount, $description) {
 # Send message to user via Robust XML-RPC
 #
 function send_user_alert($agentid, $message) {
+
     $db = new DB;
 
     // Get region where user is present
@@ -111,7 +112,7 @@ function send_user_alert($agentid, $message) {
         error_log("User $agentid not found in Presence table");
         return;
     }
-    $regionid = $db->f('RegionID');
+    $regionid = trim($db->f('RegionID'));
 
     // Get region endpoint from regions table
     $db->query("SELECT serverIP, serverHttpPort FROM " . C_REGIONS_TBL . " WHERE uuid = '" . $db->escape($regionid) . "'");
@@ -124,12 +125,12 @@ function send_user_alert($agentid, $message) {
     $port = $db->f('serverHttpPort');
     $url  = "http://$host:$port";
 
-    // Send alert via RemoteAdmin
-    $command = "alert user \"$agentid\" \"$message\"";
-    $request = xmlrpc_encode_request("admin_console_command", array(
+    // Send alert via your new RemoteAdmin method
+    $request = xmlrpc_encode_request("admin_alert_user", array(
         array(
             "password" => OPENSIM_REMOTEADMIN_PASSWORD,
-            "command"  => $command
+            "agent_id" => $agentid,
+            "message"  => $message
         )
     ));
 
@@ -143,6 +144,8 @@ function send_user_alert($agentid, $message) {
 
     if ($response === FALSE) {
         error_log("Failed to send alert to user $agentid via region $regionid");
+    } else {
+        error_log("Alert response: " . $response);
     }
 }
 ?>

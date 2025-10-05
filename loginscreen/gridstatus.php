@@ -23,11 +23,11 @@
                 <TD class=gridtext align=left><STRONG>GRID 
 STATUS:</STRONG></TD>
                 <TD class=gridtext align=right>
-				<? if($GRIDSTATUS == '1'){?>
+				<?php if($GRIDSTATUS == '1'){?>
 				<SPAN class=ONLINE>ONLINE</SPAN>
-				<? }else {?>
+				<?php }else {?>
 				<SPAN class=OFFLINE>OFFLINE</SPAN>
-				<? } ?>
+				<?php } ?>
 				
 				</TD></TR></TBODY></TABLE>
             <DIV id=GREX style="MARGIN: 1px 0px 0px"><IMG 
@@ -39,22 +39,22 @@ STATUS:</STRONG></TD>
               <TR bgColor=#151515>
                 <TD class=gridtext vAlign=top noWrap align=left>Total Users:</TD>
                 <TD class=gridtext vAlign=top noWrap align=right 
-                  width="1%"><?=$USERCOUNT?></TD>
+                  width="1%"><?php echo $USERCOUNT; ?></TD>
               </TR>
               <TR bgColor=#000000>
                 <TD class=gridtext vAlign=top noWrap align=left>Total Regions:</TD>
                 <TD class=gridtext vAlign=top noWrap align=right 
-                  width="1%"><?=$REGIONSCOUNT?></TD>
+                  width="1%"><?php echo $REGIONSCOUNT; ?></TD>
               </TR>
               <TR bgColor=#151515>
                 <TD class=gridtext vAlign=top noWrap align=left>Unique Visitors last 30 days:</TD>
                 <TD class=gridtext vAlign=top noWrap align=right 
-                  width="1%"><?=$LASTMONTHONLINE?></TD>
+                  width="1%"><?php echo $LASTMONTHONLINE; ?></TD>
               </TR>
 			  <TR bgColor=#000000>
                 <TD class=gridtext vAlign=top noWrap align=left><STRONG>Online Now:</STRONG></TD>
                 <TD class=gridtext vAlign=top noWrap align=right 
-                  width="1%"><STRONG><?=$NOWONLINE?></STRONG></TD>
+                  width="1%"><STRONG><?php echo $NOWONLINE; ?></STRONG></TD>
               </TR>
 			  </TBODY></TABLE></TD>
           <TD class=gridbox_r></TD></TR>

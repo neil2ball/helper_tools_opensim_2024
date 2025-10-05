@@ -60,7 +60,7 @@ class DB
 
     function next_record()
     {
-        $this->Record = mysqli_fetch_array($this->Query_ID, MYSQLI_NUM);
+        $this->Record = mysqli_fetch_array($this->Query_ID, MYSQLI_BOTH);
         $this->Row += 1;
         $this->Errno = mysqli_errno($this->Link_ID);
         $this->Error = mysqli_error($this->Link_ID);
@@ -71,6 +71,11 @@ class DB
         }
         return $this->Record;
     }
+	
+	function f($fieldname)
+	{
+		return isset($this->Record[$fieldname]) ? $this->Record[$fieldname] : null;
+	}
 
     function num_rows()
     {
