@@ -64,7 +64,7 @@ define("C_DB_USER","database");
 define("C_DB_PASS","password");
 
 ################ Database Tables #########################
-define("C_ADMIN_TBL","wi_admin");
+/*define("C_ADMIN_TBL","wi_admin");
 define("C_WIUSR_TBL","wi_users");
 define("C_USRBAN_TBL","wi_banned");
 define("C_CODES_TBL","wi_codetable");
@@ -82,11 +82,22 @@ define("C_MAP_REGIONS_TBL", "wi_regions");
 // OFFLINE IM'S
 define("C_OFFLINE_IM_TBL", "wi_offline_msgs");
 // STATISTICS
-define("C_STATS_REGIONS_TBL", "wi_statistics");
+define("C_STATS_REGIONS_TBL", "wi_statistics");*/
 
 //OPENSIM DEFAULT TABLES (NEDED FOR LOGINSCREEN & MONEY SYSTEM)
-define("C_USERS_TBL","users");
-define("C_AGENTS_TBL","agents");
-define("C_REGIONS_TBL","regions");
-define("C_APPEARANCE_TBL", "avatarappearance");
+define("C_USERS_TBL", "UserAccounts");
+define("C_AGENTS_TBL", "GridUser");
+define("C_REGIONS_TBL", "regions");
+define("C_APPEARANCE_TBL", "Avatars");
+define("C_PRESENCE_TBL", "Presence");
+
+##################### REST API Settings #########################
+// REST API configuration for wallet system
+define("REST_API_BASE_URL", "http://your-wordpress-site.com/wp-json/wsfw-route/v1");
+define("REST_CONSUMER_KEY", "your_consumer_key_here");
+define("REST_CONSUMER_SECRET", "your_consumer_secret_here");
+
+##################### Robust Server Settings #########################
+// Robust server settings for sending user messages
+define("OPENSIM_REMOTEADMIN_PASSWORD", "your_admin_password_here");
 ?>

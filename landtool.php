@@ -1,5 +1,5 @@
 <?PHP
-##### Modified Oct 2024 for viewer xml changes #####
+##### Modified Oct 2024 for viewer xml changes and REST API integration #####
 #     Ubit Umarov 
 #     Vincient Sylvester
 #     Dan Banner
@@ -31,6 +31,7 @@
 include("settings/config.php");
 include("settings/mysql.php");
 require("helpers.php");
+require("rest_helpers.php"); // Include REST API helpers
 
 ###################### No user serviceable parts below #####################
 #
@@ -85,7 +86,7 @@ function buy_land_prep($method_name, $params, $app_data)
 
 		$landUse = array(
 				'upgrade' => False,
-				'action'  => "".SYSURL."");
+				'action'  => "".SYSURL.""));
 
 		$currency = array(
 				'estimatedCost' => convert_to_real($amount));
@@ -172,8 +173,21 @@ function buy_land($method_name, $params, $app_data)
 
 				return "";
 			}
-			move_money($economy_source_account, $agentid, $amount, 0, 0, 0, 0,
-			                    "Currency purchase",0,$ipAddress);
+			
+			// Use REST API instead of direct database call
+			$result = update_wallet_via_rest($agentid, $amount, 'credit', "Currency purchase for land", 'OpenSim', 'Land purchase currency');
+			
+			if (!$result) {
+				header("Content-type: text/xml");
+				$response_xml = xmlrpc_encode(array(
+						'success'      => False,
+						'errorMessage' => "\n\nUnable to process wallet transaction. Please try again.",
+						'errorURI'     => "".SYSURL.""));
+                $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
+                $response_xmlf .="</methodResponse>";
+                print $response_xmlf;
+				return "";
+			}
 		}
 
 		header("Content-type: text/xml");

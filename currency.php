@@ -1,5 +1,5 @@
 <?PHP
-##### Modified Oct 2024 for viewer xml changes #####
+##### Modified Oct 2024 for viewer xml changes and REST API integration #####
 #     Ubit Umarov 
 #     Vincient Sylvester
 #     Dan Banner
@@ -55,6 +55,7 @@
 include("settings/config.php");
 include("settings/mysql.php");
 require("helpers.php");
+require("rest_helpers.php"); // Include REST API helpers
 
 ###################### No user serviceable parts below #####################
 
@@ -101,6 +102,10 @@ function get_currency_quote($method_name, $params, $app_data)
 
 	if($UUID)
 	{
+		// Send message to user with purchase link
+		send_user_message($agentid, "Token Purchase Required", 
+			"To purchase tokens, please visit: ".SYSURL."/tokens\n\nYou requested to buy L$".$amount." worth of tokens.");
+
 		$estimatedcost = convert_to_real($amount);
 
 		$currency = array('estimatedCost'=>$estimatedcost,
@@ -138,7 +143,6 @@ xmlrpc_server_register_method($xmlrpc_server, "buyCurrency", "buy_currency");
 
 function buy_currency($method_name, $params, $app_data)
 {
-	global $economy_source_account;
 	global $minimum_real;
 	global $low_amount_error;
 
@@ -181,34 +185,18 @@ function buy_currency($method_name, $params, $app_data)
 			return "";
 		}
 
-		$transactionResult = process_transaction($agentid,$cost,$ipAddress);
+		// Send message to user with purchase link instead of processing transaction
+		send_user_message($agentid, "Complete Token Purchase", 
+			"Please visit ".SYSURL."/tokens to complete your purchase of L$".$amount." worth of tokens.\n\nClick the link to proceed with payment.");
 
-		if ($transactionResult)
-		{
-			header("Content-type: text/xml");
-			$response_xml = xmlrpc_encode(array(
-					'success' => True));
-
+		header("Content-type: text/xml");
+		$response_xml = xmlrpc_encode(array(
+				'success'      => False,
+				'errorMessage' => "Please use the website to purchase tokens: ".SYSURL."/tokens",
+				'errorURI'     => "".SYSURL."/tokens"));
                 $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
                 $response_xmlf .="</methodResponse>";
                 print $response_xmlf;
-
-			move_money($economy_source_account, $agentid, $amount, 0, 0, 0, 0,
-					"Currency purchase",$regionid,$ipAddress);
-
-			update_simulator_balance($agentid);
-		}
-		else
-		{
-			header("Content-type: text/xml");
-			$response_xml = xmlrpc_encode(array(
-					'success'      => False,
-					'errorMessage' => "We were unable to process the transaction.  The gateway denied your charge",
-					'errorURI'     => "".SYSURL.""));
-                $response_xmlf = str_replace("<params>","<methodResponse><params>",$response_xml);
-                $response_xmlf .="</methodResponse>";
-                print $response_xmlf;
-		}
 	}
 	else 
 	{
@@ -235,7 +223,7 @@ function buy_currency($method_name, $params, $app_data)
 # Region requests account balance
 #
 
-xmlrpc_server_register_method($xmlrpc_server, "simulatorUserBalanceRequest",
+/*xmlrpc_server_register_method($xmlrpc_server, "simulatorUserBalanceRequest",
 		"balance_request");
 
 function balance_request($method_name, $params, $app_data)
@@ -275,10 +263,13 @@ function balance_request($method_name, $params, $app_data)
 
         if($user_id)
         {
+            // Use REST API to get balance
+            $balance = get_wallet_balance_via_rest($agentid);
+            
             $response_xml = xmlrpc_encode(array(
                     'success' => True,
                     'agentId' => $agentid,
-                    'funds'   => (integer)get_balance($agentid)));
+                    'funds'   => (integer)$balance));
         }
         else
         {
@@ -357,7 +348,10 @@ function region_move_money($method_name, $params, $app_data)
 
         if($user_id)
         {
-			if(get_balance($agentid) < $cash)
+			// Use REST API to check balance
+			$balance = get_wallet_balance_via_rest($agentid);
+			
+			if($balance < $cash)
 			{
 				$response_xml = xmlrpc_encode(array(
 						'success'      => False,
@@ -419,17 +413,22 @@ function region_move_money($method_name, $params, $app_data)
 					$description="Land purchase";
 				}
 
-				move_money($agentid, $destid, $cash,
-						$aggregatePermInventory, $aggregatePermNextOwner,
-						$flags, $transactiontype, $description,
-						$regionid, $ipAddress);
-
-				$response_xml = xmlrpc_encode(array(
-						'success'        => True,
-						'agentId'        => $agentid,
-						'funds'          => get_balance($agentid),
-						'funds2'         => get_balance($destid),
-						'currencySecret' => " "));
+				// Use REST API for money transfer
+				$transfer_result = transfer_money_via_rest($agentid, $destid, $cash, $description);
+				
+				if ($transfer_result) {
+					$response_xml = xmlrpc_encode(array(
+							'success'        => True,
+							'agentId'        => $agentid,
+							'funds'          => get_wallet_balance_via_rest($agentid),
+							'funds2'         => get_wallet_balance_via_rest($destid),
+							'currencySecret' => " "));
+				} else {
+					$response_xml = xmlrpc_encode(array(
+							'success'      => False,
+							'errorMessage' => "Unable to complete the money transfer. Please try again.",
+							'errorURI'     => " "));
+				}
 			}
 		}
 		else
@@ -453,8 +452,9 @@ function region_move_money($method_name, $params, $app_data)
         $response_xmlf .="</methodResponse>";
         print $response_xmlf;
 
-	$stri = update_simulator_balance($agentid);
-	$stri = update_simulator_balance($destid);
+	// Update simulator balances using REST API
+	update_simulator_balance($agentid);
+	update_simulator_balance($destid);
 
 	return "";
 }
@@ -506,10 +506,14 @@ function claimUser_func($method_name, $params, $app_data)
 			$db->query($sql);
 
 			$db->next_record();
+			
+			// Use REST API to get balance
+			$balance = get_wallet_balance_via_rest($agentid);
+			
 			$response_xml = xmlrpc_encode(array(
 					'success'        => True,
 					'agentId'        => $agentid,
-					'funds'          => (integer)get_balance($agentid),
+					'funds'          => (integer)$balance,
 					'currencySecret' => " "));
 		}
 		else
@@ -534,7 +538,7 @@ function claimUser_func($method_name, $params, $app_data)
         print $response_xmlf;
 
 	return "";
-}
+}*/
 
 #
 # Process the request
