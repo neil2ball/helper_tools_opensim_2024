@@ -25,7 +25,7 @@ list($REGIONSCOUNT) = $DbLink->next_record();
 		
 ?>
 <!DOCTYPE html>
-<TITLE><?=SYSNAME?> Login</TITLE>
+<TITLE><?php echo SYSNAME; ?> Login</TITLE>
 <LINK href="loginscreen/style.css" type=text/css rel=stylesheet>
 <SCRIPT src="loginscreen/resize.js" type=text/javascript></SCRIPT>
 <SCRIPT src="loginscreen/imageswitch.js" type=text/javascript></SCRIPT>
